@@ -1,0 +1,47 @@
+# macOS specific files
+.DS_Store
+
+# Xcode specific files
+DerivedData/
+*.xcworkspace
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata
+!*.xcworkspace/xcshareddata/
+
+# Swift Package Manager
+.build/
+.Package.resolved
+
+# Cocoapods
+Pods/
+Podfile.lock
+*.xcworkspace
+
+# Carthage
+Carthage/Build/
+
+# Package-Builder
+pbuilder/
+
+# Additional exclusions
+*.xcuserdatad/
+*.swp
+*.swo
+.idea/
+.vscode/
+.env
+.env.*
+
+# Backup files
+*~ 
+*.bak 
+*.backup 
+*.orig 
+*.tmp 
+*.temp
