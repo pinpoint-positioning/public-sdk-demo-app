@@ -7,7 +7,7 @@
 
 struct Strings {
     struct Names {
-        static let appName = "Pinpoint Developer"
+        static let appName = "Pinpoint Prototyping"
         static let subtitle = ""
         static let sitefile = "Sitefile"
         static let tracelet = "Tracelet"
