@@ -18,7 +18,7 @@ struct RemoteSitesList: View {
     @State private var sites = [String]()
     @State private var selectedSite: String?
     @State private var isDownloadSuccessful = true
-    @State private var isLoading = true
+    @State private var isLoading = false
     @State private var showSettings = false
     @Environment(\.dismiss) var dismiss
     
@@ -44,7 +44,7 @@ struct RemoteSitesList: View {
                             .resizable()
                             .scaledToFill()
                             .frame(width: /*@START_MENU_TOKEN@*/100/*@END_MENU_TOKEN@*/, height: 100)
-                        Text("Can`t connect to Pinpoint-Account")
+                        Text("Can't connect to Pinpoint-Account")
                             .font(.headline)
                         Text("Check your credentials")
                             .font(.footnote)
@@ -94,7 +94,7 @@ struct RemoteSitesList: View {
         Task{
             do {
                 isLoading = true
-                if let foundSites = try await NextcloudFileLister().listFilesInNextcloudFolder() {
+                if let foundSites = try await sfm.listRemoteFiles() {
                     sites = foundSites
                 } else {
                     print("nothing found")

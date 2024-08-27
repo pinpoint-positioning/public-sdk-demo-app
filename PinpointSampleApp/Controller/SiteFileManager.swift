@@ -212,6 +212,46 @@ public class SiteFileManager: ObservableObject {
         }
     }
 
+    
+    
+    
+
+    public func listRemoteFiles() async throws -> [String]? {
+        let wd = WebDAV()
+        let remoteSitesDir = "\(Constants.Paths.davFiles)\(storage.webdavUser)\(Constants.Paths.sitesSchema)"
+        let account = Account(username: storage.webdavUser, password: storage.webdavPW, baseURL: Constants.Paths.pinpointServer)
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            wd.listFiles(atPath: remoteSitesDir, account: account, password: account.password ?? "", includeSelf: false) { resources, error in
+                if let error = error {
+                    self.logger.log(type: .error, "Error: \(error)")
+                    continuation.resume(throwing: error) // Resume with error if an error occurs
+                    return
+                }
+                
+                guard let resources = resources else {
+                    self.logger.log(type: .error, "\(Strings.Errors.listFilesError) \(remoteSitesDir)")
+                    continuation.resume(returning: nil) // Resume with nil if resources are nil
+                    return
+                }
+                
+                var remoteSitesList = [String]()
+                for resource in resources {
+                    if resource.isDirectory {
+                        let siteFilePath = "\(remoteSitesDir)/\(resource.fileName)"
+                        remoteSitesList.append(siteFilePath)
+                    }
+                }
+                
+                continuation.resume(returning: remoteSitesList) // Resume with the list of remote sites
+            }
+        }
+        
+    }
+
+    
+    
+    
     public func downloadAndSave(site: String) async -> Bool {
         let account = Account(username: storage.webdavUser, password: storage.webdavPW, baseURL: Constants.Paths.pinpointServer)
         let directoryURL = site.removingPercentEncoding ?? site
@@ -235,7 +275,7 @@ public class SiteFileManager: ObservableObject {
     
     
     public func downloadSiteFromQrCode(account: Account) async -> Bool {
-
+       
         // Safely unwrap the baseURL and remove percent encoding
         guard let directoryURLString = account.dirPath,
               let directoryURL = URL(string: directoryURLString.removingPercentEncoding ?? directoryURLString) else {
@@ -270,12 +310,12 @@ public class SiteFileManager: ObservableObject {
 
     private func downloadAndProcessFiles(from remotePath: String, to localURL: URL, account: Account) async -> Bool {
         let wd = WebDAV()
-        logger.log(type: .error, "called with \(remotePath) \(localURL) \(account)")
-
         do {
             let resources = try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<[WebDAVFile]?, Error>) in
-                wd.listFiles(atPath: remotePath, account: account, password: account.password ?? "") { resources, error in
+                wd.listFiles(atPath: remotePath, account: account, password: account.password ?? "", includeSelf: false) { resources, error in
+                    
                     if let error = error {
+                        self.logger.log(type: .error, "Error: \(error)")
                         continuation.resume(throwing: error)
                     } else {
                         continuation.resume(returning: resources)
@@ -284,16 +324,17 @@ public class SiteFileManager: ObservableObject {
             }
 
             guard let resources = resources else {
-                logger.log(type: .error, "\(Strings.Errors.listFilesError) \(remotePath)")
-             
+                logger.log(type: .error, "\(Strings.Errors.listFilesError) \(remotePath)")             
                 return false
             }
 
             for resource in resources {
                 if resource.isDirectory {
                     let newLocalURL = localURL.appendingPathComponent(resource.fileName)
+                    logger.log(type: .info, "Found:  \(remotePath) ")
                     do {
                         try FileManager.default.createDirectory(at: newLocalURL, withIntermediateDirectories: true, attributes: nil)
+                        logger.log(type: .info, "Dir created:  \(newLocalURL) ")
                     } catch {
                         logger.log(type: .error, "\(Strings.Errors.createDirectoryError) \(error)")
                         return false
@@ -301,7 +342,8 @@ public class SiteFileManager: ObservableObject {
                     if !(await downloadAndProcessFiles(from: resource.path, to: newLocalURL, account: account)) {
                         return false
                     }
-                } else {
+                    // Do not download zip files
+                } else if !resource.fileName.hasSuffix(".zip") {
                     let fileURL = localURL.appendingPathComponent(resource.fileName)
                     do {
                         let data = try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Data?, Error>) in
@@ -315,6 +357,7 @@ public class SiteFileManager: ObservableObject {
                         }
 
                         if let data = data {
+                            logger.log(type: .info, "Saving:  \(fileURL) ")
                             try data.write(to: fileURL)
                             logger.log(type: .info, "\(resource.fileName) \(Strings.Messages.fileSavedSuccessfully) \(fileURL)")
                         } else {
@@ -348,59 +391,4 @@ public struct FileItem {
     var name: String
     var isFolder: Bool
 }
-
-public class NextcloudFileLister: NSObject, XMLParserDelegate {
-    private var currentElement: String?
-    private var fileNames: [String] = []
-
-    @AppStorage(Constants.Keys.webdavUser) var webdavUser = ""
-    @AppStorage(Constants.Keys.webdavPW) var webdavPW = ""
-
-    public func listFilesInNextcloudFolder() async throws -> [String]? {
-        guard let serverURL = URL(string: "\(Constants.Paths.pinpointServer)\(Constants.Paths.davFiles)\(webdavUser)") else { return nil }
-        let username = webdavUser
-        let password = webdavPW
-        let folderPath = Constants.Paths.sitesSchema
-
-        let configuration = URLSessionConfiguration.default
-        configuration.httpAdditionalHeaders = [Constants.Headers.authorization: Constants.Headers.basic + "\(username):\(password)".data(using: .utf8)!.base64EncodedString()]
-
-        let session = URLSession(configuration: configuration)
-
-        var request = URLRequest(url: serverURL.appendingPathComponent(folderPath))
-        request.httpMethod = Constants.Methods.propfind
-
-        do {
-            let (data, _) = try await session.data(for: request)
-
-            let parser = XMLParser(data: data)
-            parser.delegate = self
-            if parser.parse() {
-                for fileName in fileNames {
-                    print(fileName)
-                }
-            } else {
-                print(Strings.Errors.parsingXMLResponseError)
-            }
-        } catch {
-            print("\(Strings.Errors.generalError): \(error.localizedDescription)")
-            throw error
-        }
-        return fileNames
-    }
-
-    public func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String: String] = [:]) {
-        currentElement = elementName
-    }
-
-    public func parser(_ parser: XMLParser, foundCharacters string: String) {
-        if currentElement == Constants.Elements.dHref {
-            let fileName = string.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !fileName.isEmpty {
-                fileNames.append(fileName)
-            }
-        }
-    }
-}
-
 

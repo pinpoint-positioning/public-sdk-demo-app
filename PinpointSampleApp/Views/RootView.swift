@@ -21,12 +21,13 @@ struct RootView: View {
     @State private var settings: Settings = Settings.shared
     var body: some View {
         NavigationStack{
-            ZStack{
+            ZStack {
                 FloorMapView()
                 if isDownloadingSiteData {
-                    ProgressView()
+                    ImportingMapView()
                 }
             }
+
 
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -67,6 +68,7 @@ struct RootView: View {
                         Image(systemName: "qrcode")
                             .foregroundColor(CustomColor.pinpoint_gray)
                     }
+                    .disabled(isDownloadingSiteData)
                 }
                 
             }
@@ -157,3 +159,21 @@ struct RootView: View {
 #Preview(body: {
     RootView()
 })
+
+struct ImportingMapView: View {
+    var body: some View {
+        VStack {
+            ProgressView()
+                .scaleEffect(2)
+                .padding()
+            Text("Please wait")
+                .font(.title)
+            Text("Importing the map...")
+                .font(.body)
+                .padding()
+        }
+        .padding()
+        .background(Color.orange)
+        .cornerRadius(10)
+    }
+}

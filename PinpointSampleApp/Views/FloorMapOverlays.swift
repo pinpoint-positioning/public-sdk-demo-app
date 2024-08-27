@@ -9,7 +9,7 @@ import Pinpoint_Easylocate_iOS_SDK
 
 // Constants
 let SATLET_CIRCLE_SIZE: CGFloat = UIScreen.main.bounds.height / 8
-let POSITION_CIRCLE_SIZE: CGFloat = UIScreen.main.bounds.height / 5
+let POSITION_CIRCLE_SIZE: CGFloat = UIScreen.main.bounds.height / 10
 
 
 struct SatletView: View {

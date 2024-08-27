@@ -11,6 +11,7 @@ struct Constants {
         static let sitefiles = "sitefiles"
         static let davFiles = "/remote.php/dav/files/"
         static let sitesSchema = "/sites_schema5"
+        static let webDavBaseDir = pinpointServer + davFiles
     }
 
     struct Extensions {

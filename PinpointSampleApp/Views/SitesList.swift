@@ -1,6 +1,7 @@
 import SwiftUI
 import AlertToast
 import Pinpoint_Easylocate_iOS_SDK
+import WebDAV
 
 struct SitesList: View {
     @ObservedObject var sfm = SiteFileManager.shared
@@ -142,8 +143,10 @@ struct SitesList: View {
                 try fileManager.removeItem(at: url)
                 list.removeAll()
             }
+            WebDAV().filesCache.removeAll()
             sfm.siteFile = SiteData()
             sfm.floorImage = UIImage()
+            
         } catch {
             print(error)
         }
