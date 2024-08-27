@@ -8,7 +8,7 @@ target 'PinpointSampleApp' do
   use_frameworks!
 
   # Pods for PinpointSampleApp
-  pod 'Pinpoint-Easylocate-iOS-SDK','11.4.0.5'
+  pod 'Pinpoint-Easylocate-iOS-SDK','12.0.0'
 
 
 end
