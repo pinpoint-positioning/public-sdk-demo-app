@@ -35,7 +35,7 @@ struct ListItem: View {
 
 
 struct ButtonStack: View {
-    @EnvironmentObject var api : EasylocateAPI
+    @ObservedObject var api = EasylocateAPI.shared
     var scanAction: () -> Void
     var centerAction: () -> Void
     var siteListAction: () -> Void

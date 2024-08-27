@@ -15,4 +15,6 @@ class LocalStorageManager: ObservableObject{
     @AppStorage("webdav-user") var webdavUser = ""
     @AppStorage("webdav-pw") var webdavPW = ""
     @AppStorage ("channel")  var channel:Int = 5
+    
+    private init() {}
 }

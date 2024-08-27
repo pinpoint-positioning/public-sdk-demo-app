@@ -11,11 +11,12 @@ import CoreBluetooth
 import AlertToast
 
 struct FloorMapView: View {
-    @EnvironmentObject var api: EasylocateAPI
-    @EnvironmentObject var sfm: SiteFileManager
-    @EnvironmentObject var alerts: AlertController
+    @ObservedObject var api = EasylocateAPI.shared
+    @ObservedObject var sfm = SiteFileManager.shared
+    @ObservedObject var alerts = AlertController.shared
+    @ObservedObject var storage = LocalStorageManager.shared
     @StateObject var tracelet = Tracelet.shared
-    @StateObject var storage = LocalStorageManager.shared
+
     
     @State private var centerAnchor: Bool = false
     @State private var currentPosition = CGPoint()
@@ -26,8 +27,8 @@ struct FloorMapView: View {
     @State private var imageGeo: ImageGeometry = ImageGeometry(xOrigin: 0.0, yOrigin: 0.0, imageSize: .zero, imagePosition: .zero)
     @State private var meterToPixelRatio: CGFloat = 0.0
     @State private var scale = 0.6
-    @State private var settings: Settings = Settings()
-    @State private var settingsPresented = false
+    @State private var settings: Settings = Settings.shared
+    
     @State private var showAlert = false
     @State private var showingScanResults = false
     @State private var siteListIsPresented = false
@@ -89,19 +90,7 @@ struct FloorMapView: View {
             .offset(y: -10)
             .padding(.vertical)
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    settingsPresented = true
-                } label: {
-                    Image(systemName: "gearshape.fill")
-                        .foregroundColor(CustomColor.pinpoint_gray)
-                }
-            }
-        }
-        .sheet(isPresented: $settingsPresented) {
-            SettingsView(mapSettings: $settings)
-        }
+
         .sheet(isPresented: $showingScanResults) {
             DeviceListView(discoveredDevices: $discoveredDevices)
                 .presentationDetents([.medium, .large])
@@ -256,9 +245,6 @@ struct FloorMapView: View {
 
 #Preview {
     FloorMapView()
-        .environmentObject(EasylocateAPI.shared)
-        .environmentObject(SiteFileManager())
-        .environmentObject(AlertController())
 }
 
 struct HoldDeviceCloseView: View {

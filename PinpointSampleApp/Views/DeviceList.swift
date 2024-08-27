@@ -12,9 +12,9 @@ import CoreBluetooth
 struct DeviceListView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.presentationMode) var presentationMode
-    @EnvironmentObject var api:EasylocateAPI
+    @ObservedObject var api = EasylocateAPI.shared
     @Binding var discoveredDevices:[CBPeripheral]
-    @EnvironmentObject var sfm : SiteFileManager
+    @ObservedObject var sfm = SiteFileManager.shared
     let logger = Logging.shared
     @State var eyeIconOpacity = 1.0
     

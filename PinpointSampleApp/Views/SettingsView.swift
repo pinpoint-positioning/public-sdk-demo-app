@@ -9,11 +9,11 @@ import SwiftUI
 import Pinpoint_Easylocate_iOS_SDK
 
 struct SettingsView: View {
-    @Binding var mapSettings: Settings
+    @State var mapSettings = Settings.shared
     @Environment(\.presentationMode) var presentationMode
     @State var updatedTraceletID:String = ""
-    @EnvironmentObject var api:EasylocateAPI
-    @EnvironmentObject var sfm : SiteFileManager
+    @ObservedObject var api = EasylocateAPI.shared
+    @ObservedObject var sfm = SiteFileManager.shared
     @State var status = TraceletStatus()
     @State var version = ""
     @State var interval: Int = 1
@@ -169,7 +169,5 @@ struct SettingsView: View {
 
 
 #Preview(body: {
-    SettingsView(mapSettings: .constant(Settings()))
-        .environmentObject(EasylocateAPI.shared)
-        .environmentObject(SiteFileManager())
+    SettingsView()
 })

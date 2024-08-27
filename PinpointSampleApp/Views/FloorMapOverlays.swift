@@ -13,7 +13,7 @@ let POSITION_CIRCLE_SIZE: CGFloat = UIScreen.main.bounds.height / 5
 
 
 struct SatletView: View {
-    @EnvironmentObject var api: EasylocateAPI
+    @ObservedObject var api = EasylocateAPI.shared
     @Binding var imageGeo: ImageGeometry
     @Binding var siteFile: SiteData
 
@@ -38,7 +38,7 @@ struct SatletView: View {
 
 struct PositionTraceView: View {
     @ObservedObject var pos = PositionFetcher.shared
-    @EnvironmentObject var api: EasylocateAPI
+    @ObservedObject var api =  EasylocateAPI.shared
     @Binding var meterToPixelRatio: CGFloat
     @Binding var imageGeo: ImageGeometry
     @Binding var settings: Settings

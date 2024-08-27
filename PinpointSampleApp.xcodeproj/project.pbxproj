@@ -32,6 +32,7 @@
 		D169A6E82C00995700B77EA5 /* ConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D169A6E72C00995700B77EA5 /* ConnectionManager.swift */; };
 		D18A5A892A9E060B0085EF3F /* LocalStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D18A5A882A9E060B0085EF3F /* LocalStorageManager.swift */; };
 		D1A98B5E2C3D6C6B000CB06A /* Strings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A98B5D2C3D6C6B000CB06A /* Strings.swift */; };
+		D1AC41632C7DC3B6007DCFB7 /* CodeScanner in Frameworks */ = {isa = PBXBuildFile; productRef = D1AC41622C7DC3B6007DCFB7 /* CodeScanner */; };
 		D1B109062A4585750039B5ED /* RemoteSitesList.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1B109052A4585750039B5ED /* RemoteSitesList.swift */; };
 		D1DCAED82A7CD6510094333A /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1DCAED72A7CD6510094333A /* RootView.swift */; };
 		D1F967F12A1CA4AA00277310 /* FloorMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1F967F02A1CA4AA00277310 /* FloorMapView.swift */; };
@@ -77,6 +78,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1AC41632C7DC3B6007DCFB7 /* CodeScanner in Frameworks */,
 				D1381A192A0E416C00DF8141 /* FilePicker in Frameworks */,
 				D1FB33E92A3B142B003764F9 /* ZIPFoundation in Frameworks */,
 				D1223B632A8B9214008A755E /* AlertToast in Frameworks */,
@@ -215,6 +217,7 @@
 				D120B8E12C29B0EF0015E2DE /* SwiftyXMLParser */,
 				D120B8E52C2AEC120015E2DE /* WebDAV */,
 				D120B8E82C2AEC2A0015E2DE /* WebDAV */,
+				D1AC41622C7DC3B6007DCFB7 /* CodeScanner */,
 			);
 			productName = PinpointSampleApp;
 			productReference = D112270529B9EF8B00E49993 /* PinpointSampleApp.app */;
@@ -251,6 +254,7 @@
 				D1CD4E9E2A9364B70025A2DD /* XCRemoteSwiftPackageReference "swift-protobuf" */,
 				D120B8E02C29B0EF0015E2DE /* XCRemoteSwiftPackageReference "SwiftyXMLParser" */,
 				D120B8E72C2AEC2A0015E2DE /* XCRemoteSwiftPackageReference "WebDAV-Swift" */,
+				D1AC41612C7DC3B6007DCFB7 /* XCRemoteSwiftPackageReference "CodeScanner" */,
 			);
 			productRefGroup = D112270629B9EF8B00E49993 /* Products */;
 			projectDirPath = "";
@@ -479,6 +483,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bluetooth is needed to connect to the tracelet";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Bluetooth is needed to connect to the tracelet";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Access to the camera is needed to scan QR-Codes";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Location needed for app to work";
 				INFOPLIST_KEY_NSLocationUsageDescription = "Location needed for app to work";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -524,6 +529,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Bluetooth is needed to connect to the tracelet";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Bluetooth is needed to connect to the tracelet";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Access to the camera is needed to scan QR-Codes";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Location needed for app to work";
 				INFOPLIST_KEY_NSLocationUsageDescription = "Location needed for app to work";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -607,6 +613,14 @@
 				minimumVersion = 1.0.0;
 			};
 		};
+		D1AC41612C7DC3B6007DCFB7 /* XCRemoteSwiftPackageReference "CodeScanner" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/twostraws/CodeScanner";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.0;
+			};
+		};
 		D1CD4E9E2A9364B70025A2DD /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-protobuf.git";
@@ -649,6 +663,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D1381A172A0E416C00DF8141 /* XCRemoteSwiftPackageReference "FilePicker" */;
 			productName = FilePicker;
+		};
+		D1AC41622C7DC3B6007DCFB7 /* CodeScanner */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D1AC41612C7DC3B6007DCFB7 /* XCRemoteSwiftPackageReference "CodeScanner" */;
+			productName = CodeScanner;
 		};
 		D1FB33E82A3B142B003764F9 /* ZIPFoundation */ = {
 			isa = XCSwiftPackageProductDependency;

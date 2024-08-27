@@ -3,8 +3,8 @@ import AlertToast
 import Pinpoint_Easylocate_iOS_SDK
 
 struct SitesList: View {
-    @EnvironmentObject var sfm: SiteFileManager
-    @EnvironmentObject var alerts: AlertController
+    @ObservedObject var sfm = SiteFileManager.shared
+    @ObservedObject var alerts = AlertController.shared
     let logger = Logging.shared
     
     @State private var list = [String]()
@@ -121,6 +121,7 @@ struct SitesList: View {
     }
     
     private func handleSiteFileSelection(item: String) {
+        logger.log(type: .info, "Selected site \(item)")
         selectedItem = item
         if let newItem = selectedItem {
             do {
@@ -153,7 +154,5 @@ struct SitesList: View {
 struct LocalSiteFileList_Previews: PreviewProvider {
     static var previews: some View {
         SitesList()
-            .environmentObject(SiteFileManager())
-            .environmentObject(AlertController())
     }
 }

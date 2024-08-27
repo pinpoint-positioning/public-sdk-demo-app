@@ -24,18 +24,29 @@ struct ImageGeometry {
     var imagePosition:CGPoint
 }
 
-struct Settings {
+class Settings {
+    static let shared = Settings()
+
     var previousPositions: Int = 0
     var showRuler: Bool = false
     var showOrigin: Bool = false
-    var showAccuracyRange:Bool = false
-    var showSatlets:Bool = false
+    var showAccuracyRange: Bool = false
+    var showSatlets: Bool = false
+
+    private init() {}
 }
+
 
 enum CustomError: Error {
     case statusNotFound
     case otherError(description: String)
 }
 
+public struct QrCodeData:Codable {
+    var user: String
+    var pw: String
+    var sitePath: String
+    
+}
 
 

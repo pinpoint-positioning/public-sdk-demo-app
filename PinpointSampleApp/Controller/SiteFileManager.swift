@@ -12,12 +12,15 @@ import Pinpoint_Easylocate_iOS_SDK
 import WebDAV
 
 public class SiteFileManager: ObservableObject {
-    var storage = LocalStorageManager.shared
-    let logger = Logging.shared
+    public static let shared = SiteFileManager()
+    private var storage = LocalStorageManager.shared
+    private let logger = Logging.shared
+    private let fileManager = FileManager()
+    
     @Published var siteFile = SiteData()
     @Published var floorImage = UIImage()
-    let fileManager = FileManager()
     
+    private init() {}
 
     
     func getDocumentsDirectory() -> URL {
@@ -186,6 +189,7 @@ public class SiteFileManager: ObservableObject {
         }
     }
 
+    
     public func getFloorImage(siteFileName: String) throws -> UIImage {
         var destinationURL = getDocumentsDirectory()
         destinationURL.appendPathComponent(Constants.Paths.sitefiles)
@@ -209,7 +213,7 @@ public class SiteFileManager: ObservableObject {
     }
 
     public func downloadAndSave(site: String) async -> Bool {
-        let account = Account(username: storage.webdavUser, baseURL: Constants.Paths.pinpointServer)
+        let account = Account(username: storage.webdavUser, password: storage.webdavPW, baseURL: Constants.Paths.pinpointServer)
         let directoryURL = site.removingPercentEncoding ?? site
 
         guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
@@ -227,13 +231,50 @@ public class SiteFileManager: ObservableObject {
 
         return await downloadAndProcessFiles(from: directoryURL, to: sitesDirectory, account: account)
     }
+    
+    
+    
+    public func downloadSiteFromQrCode(account: Account) async -> Bool {
+
+        // Safely unwrap the baseURL and remove percent encoding
+        guard let directoryURLString = account.dirPath,
+              let directoryURL = URL(string: directoryURLString.removingPercentEncoding ?? directoryURLString) else {
+            logger.log(type: .error, "Invalid URL in base URL or failed to remove percent encoding.")
+            return false
+        }
+
+        // Get the documents directory
+        guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            logger.log(type: .error, Strings.Errors.getDocumentsDirectoryError)
+            return false
+        }
+
+        // Create the sites directory path
+        let dirName = directoryURL.lastPathComponent
+        let sitesDirectory = documentsDirectory.appendingPathComponent("\(Constants.Paths.sitefiles)/\(dirName)")
+        
+        do {
+            // Create the directory if it doesn't exist
+            try FileManager.default.createDirectory(at: sitesDirectory, withIntermediateDirectories: true, attributes: nil)
+        } catch {
+            logger.log(type: .error, "\(Strings.Errors.createSitesDirectoryError) \(error)")
+            return false
+        }
+
+        // download and process files
+        return await downloadAndProcessFiles(from: directoryURL.absoluteString, to: sitesDirectory, account: account)
+    }
+    
+    
+    
 
     private func downloadAndProcessFiles(from remotePath: String, to localURL: URL, account: Account) async -> Bool {
         let wd = WebDAV()
+        logger.log(type: .error, "called with \(remotePath) \(localURL) \(account)")
 
         do {
             let resources = try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<[WebDAVFile]?, Error>) in
-                wd.listFiles(atPath: remotePath, account: account, password: storage.webdavPW) { resources, error in
+                wd.listFiles(atPath: remotePath, account: account, password: account.password ?? "") { resources, error in
                     if let error = error {
                         continuation.resume(throwing: error)
                     } else {
@@ -244,6 +285,7 @@ public class SiteFileManager: ObservableObject {
 
             guard let resources = resources else {
                 logger.log(type: .error, "\(Strings.Errors.listFilesError) \(remotePath)")
+             
                 return false
             }
 
@@ -263,7 +305,7 @@ public class SiteFileManager: ObservableObject {
                     let fileURL = localURL.appendingPathComponent(resource.fileName)
                     do {
                         let data = try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Data?, Error>) in
-                            wd.download(fileAtPath: resource.path, account: account, password: storage.webdavPW) { data, error in
+                            wd.download(fileAtPath: resource.path, account: account, password: account.password ?? "") { data, error in
                                 if let error = error {
                                     continuation.resume(throwing: error)
                                 } else {

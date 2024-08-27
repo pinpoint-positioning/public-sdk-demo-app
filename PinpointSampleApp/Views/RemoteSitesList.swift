@@ -12,8 +12,8 @@ import WebDAV
 
 
 struct RemoteSitesList: View {
-    @EnvironmentObject var sfm:SiteFileManager
-    @EnvironmentObject var alerts : AlertController
+    @ObservedObject var sfm = SiteFileManager.shared
+    @ObservedObject var alerts = AlertController.shared
     @StateObject var storage = LocalStorageManager.shared
     @State private var sites = [String]()
     @State private var selectedSite: String?
@@ -134,10 +134,11 @@ struct WebDavCreds: View {
 }
 
 
-struct Account:WebDAVAccount {
-    var username: String?
-    var baseURL: String?
-    
+public struct Account:WebDAVAccount {
+    public var username: String?
+    public var password: String?
+    public var baseURL: String?
+    public var dirPath: String?
 }
 
 
