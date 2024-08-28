@@ -18,6 +18,10 @@ struct RootView: View {
     @State private var settingsPresented = false
     @State private var codeScannerPresented = false
     @State private var isDownloadingSiteData = false
+    @State private var showSaveCredentialsAlert = false
+    @State private var showInvalidQrCodeAlert = false
+    @State private var scannedUser: String?
+    @State private var scannedPassword: String?
     @State private var settings: Settings = Settings.shared
     var body: some View {
         NavigationStack{
@@ -72,6 +76,8 @@ struct RootView: View {
                 }
                 
             }
+            
+            // Sheets
             .sheet(isPresented: $settingsPresented) {
                 SettingsView()
             }
@@ -79,8 +85,23 @@ struct RootView: View {
             .sheet(isPresented: $codeScannerPresented) {
                 CodeScannerView(codeTypes: [.qr], completion: handleScan)
             }
+            
+            // QR Code Alerts
+            .alert(Strings.Messages.saveAccountCredentials , isPresented: $showSaveCredentialsAlert) {
+                Button("Yes") {
+                    if let user = scannedUser, let password = scannedPassword {
+                        saveCredentials(user: user, password: password)
+                    }
+                }
+                Button("No", role: .cancel) { }
+            }
+            
+            .alert("Invalid QR Code", isPresented: $showInvalidQrCodeAlert) {
+                Button("OK", role: .cancel) { }
+            }
 
-            // AlertToast
+
+            // Alert Toasts
             .toast(isPresenting: $alerts.showNoTraceletInRange){
                 AlertToast(type: .regular, title: Strings.Toasts.noTraceletInRange)
             }
@@ -98,7 +119,8 @@ struct RootView: View {
         
     }
     
-    //  isDownloadSuccessful = await sfm.downloadAndSave(site: site)
+
+    // Process QR Scan results
     
     func handleScan(result: Result<ScanResult, ScanError>) {
         codeScannerPresented = false
@@ -110,6 +132,14 @@ struct RootView: View {
             if let jsonData = scannedString.data(using: .utf8) {
                 do {
                     let site = try JSONDecoder().decode(QrCodeData.self, from: jsonData)
+                    
+                    // Store WebDAV credentials from QR Code
+                    scannedUser = site.user
+                    scannedPassword = site.pw
+                    
+                    // Trigger the alert
+                    showSaveCredentialsAlert = true
+
                     let baseURLString = Constants.Paths.pinpointServer
                     
                     // Remove the base URL to get the directory path
@@ -137,18 +167,26 @@ struct RootView: View {
                     
                 } catch {
                     isDownloadingSiteData = false
+                    showInvalidQrCodeAlert = true
                     print("Decoding failed: \(error.localizedDescription)")
                 }
             } else {
                 isDownloadingSiteData = false
+                showInvalidQrCodeAlert = true
                 print("Failed to convert scanned string to Data.")
             }
             
         case .failure(let error):
             isDownloadingSiteData = false
+            showInvalidQrCodeAlert = true
             print("Scanning failed: \(error.localizedDescription)")
         }
         
+    }
+    
+    func saveCredentials(user:String, password:String) {
+        storage.webdavPW = password
+        storage.webdavUser = user
     }
 
     

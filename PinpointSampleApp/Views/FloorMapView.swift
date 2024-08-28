@@ -186,12 +186,7 @@ struct FloorMapView: View {
         api.startPositioning()
     }
 
-    func setSiteLocalFile(item: String) {
-        sfm.loadLocalSiteFile(siteFileName: item)
-        if let img = sfm.getLocalFloorImage(siteFileName: item) {
-            image = img
-        }
-    }
+
     
     func scan() async {
         let discoveredTracelets = await tracelet.scan()

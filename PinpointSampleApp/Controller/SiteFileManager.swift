@@ -136,38 +136,9 @@ public class SiteFileManager: ObservableObject {
             throw error
         }
     }
+    
 
-    func loadLocalSiteFile(siteFileName: String) {
-        siteFile = loadLocalJson(siteFileName: siteFileName)
-        if let localImage = getLocalFloorImage(siteFileName: siteFileName) {
-            logger.log(type: .info, "\(Strings.Messages.sitefileLoaded) \(siteFileName)")
-            floorImage = localImage
-        }
-    }
 
-    public func loadLocalJson(siteFileName: String) -> SiteData {
-        if let asset = NSDataAsset(name: "\(siteFileName).\(Constants.Extensions.json)", bundle: Bundle.main) {
-            do {
-                let jsonData = try JSONDecoder().decode(SiteData.self, from: asset.data)
-                return jsonData
-            } catch {
-                logger.log(type: .error, "\(Strings.Errors.decodeJSONError) \(error)")
-            }
-        } else {
-            logger.log(type: .error, "\(Strings.Errors.jsonFileNotFound) \(siteFileName)")
-            return SiteData()
-        }
-        return SiteData()
-    }
-
-    public func getLocalFloorImage(siteFileName: String) -> UIImage? {
-        if let image = UIImage(named: siteFileName) {
-            return image
-        } else {
-            logger.log(type: .error, Strings.Errors.loadLocalImageError)
-            return nil
-        }
-    }
 
     public func loadJson(siteFileName: String) -> SiteData {
         do {
@@ -387,8 +358,5 @@ public class SiteFileManager: ObservableObject {
     }
 }
 
-public struct FileItem {
-    var name: String
-    var isFolder: Bool
-}
+
 
