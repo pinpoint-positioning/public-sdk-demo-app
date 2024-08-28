@@ -68,16 +68,18 @@ public class SiteFileManager: ObservableObject {
         }
     }
 
-    public func getSitefilesList() -> [String] {
+     func getSitefilesList() -> [SiteFile] {
         var destinationURL = getDocumentsDirectory()
         destinationURL.appendPathComponent(Constants.Paths.sitefiles)
-        var list = [String]()
+        var list = [SiteFile]()
 
         do {
             let items = try fileManager.contentsOfDirectory(atPath: destinationURL.path)
             for item in items {
-                print(item)
-                list.append(item)
+                let siteFile = try loadSiteFile(siteFileName: item)
+                print(siteFile.siteData.map.mapName)
+                list.append(siteFile)
+                
             }
         } catch {
             print(error)
@@ -122,7 +124,8 @@ public class SiteFileManager: ObservableObject {
         }
     }
 
-    func loadSiteFile(siteFileName: String) throws {
+    @discardableResult
+     func loadSiteFile(siteFileName: String) throws -> SiteFile {
         var fileNameWithoutExtension = siteFileName
         if siteFileName.lowercased().hasSuffix(Constants.Extensions.zip) {
             fileNameWithoutExtension = String(siteFileName.dropLast(4))
@@ -132,6 +135,7 @@ public class SiteFileManager: ObservableObject {
         do {
             logger.log(type: .info, "\(Strings.Messages.sitefileLoaded) \(fileNameWithoutExtension)")
             floorImage = try getFloorImage(siteFileName: fileNameWithoutExtension)
+            return SiteFile(siteData: siteFile, image: floorImage, localName: siteFileName)
         } catch {
             throw error
         }

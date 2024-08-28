@@ -7,42 +7,52 @@ struct SitesList: View {
     @ObservedObject var sfm = SiteFileManager.shared
     @ObservedObject var alerts = AlertController.shared
     let logger = Logging.shared
-    
-    @State private var list = [String]()
-    @State private var selectedItem: String? = nil
+
+    @State var list: [SiteFile] = []
     @State private var showImporter = false
     @State private var showWebDavImporter = false
-    @State private var showLoading = false
+    @State private var showLoading = true
     @State private var showSiteFileImportAlert = false
     @Environment(\.dismiss) private var dismiss
     
+    @AppStorage("selectedSiteLocalName") private var selectedSiteLocalName: String?
+
+    var selectedItem: SiteFile? {
+        if let localName = selectedSiteLocalName {
+            return list.first(where: { $0.localName == localName })
+        }
+        return nil
+    }
+
     var body: some View {
         VStack {
             headerButtons
             Text("Imported Maps")
                 .font(.headline)
+            
             if showLoading {
                 ProgressView()
+                    .onAppear(perform: loadSiteFiles)
             }
-            if list.isEmpty {
+            
+            if list.isEmpty && !showLoading {
                 emptyListView
             } else {
                 siteFilesListView
             }
         }
         .presentationDragIndicator(.visible)
-        .task { list = sfm.getSitefilesList() }
         .toast(isPresenting: $showSiteFileImportAlert) {
             AlertToast(type: .error(.red), title: "Wrong Sitefile format!")
         }
-        .sheet(isPresented: $showWebDavImporter, onDismiss: { list = sfm.getSitefilesList() }) {
+        .sheet(isPresented: $showWebDavImporter, onDismiss: { loadSiteFiles() }) {
             RemoteSitesList()
         }
         .navigationTitle("Import SiteFile")
         .navigationBarTitleDisplayMode(.inline)
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.zip], allowsMultipleSelection: false, onCompletion: handleFileImport)
     }
-    
+
     private var headerButtons: some View {
         HStack {
             importButton(imageName: "folder", text: "Local", action: { showImporter = true })
@@ -57,7 +67,7 @@ struct SitesList: View {
         }
         .padding()
     }
-    
+
     private var emptyListView: some View {
         VStack {
             Spacer().frame(height: 100)
@@ -71,20 +81,56 @@ struct SitesList: View {
             Spacer()
         }
     }
-    
+
     private var siteFilesListView: some View {
-        List(list, id: \.self, selection: $selectedItem) { item in
+        List(Array(list.enumerated()), id: \.offset) { index, site in
             Button {
-                handleSiteFileSelection(item: item)
+                handleSiteFileSelection(item: site)
             } label: {
-                Text(item)
-                    .foregroundColor(sfm.siteFile.map.mapFile != item ? .black : CustomColor.pinpoint_orange)
+                HStack {
+                    Image(uiImage: site.image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 75, height: 75)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .shadow(radius: 2)
+                    
+                    VStack(alignment: .leading) {
+                        Text(site.siteData.map.mapName)
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        Text(site.localName)
+                            .font(.subheadline)
+                            .foregroundColor(.primary)
+                        
+                        Text("SiteID: \(site.siteData.map.mapSiteId)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        Text("UWB-Channel: \(String(site.siteData.map.uwbChannel))")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    
+                    if site.localName == selectedSiteLocalName {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                            .font(.title)
+                    }
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(10)
+                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
             }
+            .buttonStyle(PlainButtonStyle())
         }
         .scrollContentBackground(.hidden)
-        .listStyle(.insetGrouped)
+        .listStyle(InsetGroupedListStyle())
     }
-    
+
     private func importButton(imageName: String, text: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack {
@@ -98,6 +144,16 @@ struct SitesList: View {
         .padding(.trailing)
     }
     
+    private func loadSiteFiles() {
+        showLoading = true
+            let fetchedList = sfm.getSitefilesList()
+            
+            DispatchQueue.main.async {
+                self.list = fetchedList
+                self.showLoading = false
+        }
+    }
+
     private func handleFileImport(result: Result<[URL], Error>) {
         do {
             guard let selectedFile = try result.get().first else { return }
@@ -110,8 +166,8 @@ struct SitesList: View {
             Task {
                 do {
                     try await sfm.unarchiveFile(sourceFile: destinationUrl)
-                    list = sfm.getSitefilesList()
-                    try sfm.loadSiteFile(siteFileName: selectedFile.lastPathComponent)
+                    loadSiteFiles() // Reload files after import
+                    let _ = try sfm.loadSiteFile(siteFileName: selectedFile.lastPathComponent)
                 } catch {
                     showSiteFileImportAlert.toggle()
                 }
@@ -121,16 +177,14 @@ struct SitesList: View {
         }
     }
     
-    private func handleSiteFileSelection(item: String) {
+    private func handleSiteFileSelection(item: SiteFile) {
         logger.log(type: .info, "Selected site \(item)")
-        selectedItem = item
-        if let newItem = selectedItem {
-            do {
-                try sfm.loadSiteFile(siteFileName: newItem)
-                dismiss()
-            } catch {
-                showSiteFileImportAlert.toggle()
-            }
+        selectedSiteLocalName = item.localName
+        do {
+            let _ = try sfm.loadSiteFile(siteFileName: item.localName)
+            dismiss()
+        } catch {
+            showSiteFileImportAlert.toggle()
         }
     }
     
@@ -146,13 +200,13 @@ struct SitesList: View {
             WebDAV().filesCache.removeAll()
             sfm.siteFile = SiteData()
             sfm.floorImage = UIImage()
+            selectedSiteLocalName = nil
             
         } catch {
             print(error)
         }
     }
 }
-
 
 struct LocalSiteFileList_Previews: PreviewProvider {
     static var previews: some View {

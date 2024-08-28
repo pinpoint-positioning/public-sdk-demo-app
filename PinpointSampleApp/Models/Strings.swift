@@ -73,6 +73,7 @@ struct Strings {
         static let sitefileLoaded = "Sitefile loaded:"
         static let loadedFloormap = "Loaded Floormap:"
         static let fileSavedSuccessfully = "file saved successfully at:"
+        static let saveAccountCredentials = "Save account crendentials?"
     }
     
     
@@ -97,6 +98,7 @@ struct Strings {
         static let downloadOrSaveFileError = "Error downloading or saving file:"
         static let listDirectoryError = "Error listing directory or downloading files:"
         static let parsingXMLResponseError = "Error parsing XML response"
+        
     }
 }
 

@@ -6,7 +6,16 @@
 //
 
 import Foundation
+import SwiftUI
+import Pinpoint_Easylocate_iOS_SDK
 
+
+struct SiteFile:Equatable {
+    var id = UUID()
+    var siteData:SiteData
+    var image:UIImage
+    var localName:String
+}
 
 struct Position: Hashable {
     let x: CGFloat
