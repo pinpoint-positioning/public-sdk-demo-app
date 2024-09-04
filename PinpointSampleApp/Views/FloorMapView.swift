@@ -39,7 +39,18 @@ struct FloorMapView: View {
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 0.0) {
+                HStack{
+                    Text(sfm.siteFile.map.mapName)
+                    Text("-")
+                    Text(sfm.siteFile.map.configName)
+                    Spacer()
+                }
+                
+                .fontWeight(.semibold)
+                .font(.subheadline)
+                .background(.gray.opacity(0.1))
+
                 ScrollViewReader { scrollView in
                     ScrollView([.horizontal, .vertical]) {
                         if api.scanState == .SCANNING {
@@ -56,13 +67,13 @@ struct FloorMapView: View {
                                 .onAppear {
                                     handleOnAppear()
                                 }
-                                .onChange(of: centerAnchor) { newCenterAnchor in
+                                .onChange(of: centerAnchor) { _ , newCenterAnchor in
                                     handleCenterAnchorChange(newCenterAnchor, scrollView: scrollView)
                                 }
-                                .onChange(of: api.connectionState) { newValue in
+                                .onChange(of: api.connectionState) { _ , newValue in
                                     handleConnectionStateChange(newValue)
                                 }
-                                .onChange(of: sfm.siteFile) { newValue in
+                                .onChange(of: sfm.siteFile) { _ , newValue in
                                     handleSiteFileChange(newValue)
                                     scrollView.scrollTo("imagecenter", anchor: .center)
                                 }
@@ -73,6 +84,7 @@ struct FloorMapView: View {
                                 .pinchToZoom()
                         }
                     }
+                    .background(.gray.opacity(0.1))
                 }
             }
             
@@ -122,7 +134,7 @@ struct FloorMapView: View {
     private func handleConnectionStateChange(_ newValue: ConnectionState) {
         if newValue == .CONNECTED {
             if !sfm.siteFile.map.mapName.isEmpty {
-                _ = api.setChannel(channel: Int8(sfm.siteFile.map.uwbChannel))
+                _ = api.setChannel(channel: Int8(sfm.siteFile.map.uwbChannel ?? Constants.Values.defaultUwbChannel))
             }
             alerts.showConnectedToast.toggle()
         } else if newValue == .DISCONNECTED {
@@ -181,24 +193,24 @@ struct FloorMapView: View {
         imageGeo.imageSize = CGSize(width: image.size.width, height: image.size.height)
         imageGeo.imagePosition = CGPoint.zero
         
-        _ = api.setChannel(channel: Int8(newSiteFile.map.uwbChannel))
-        storage.channel = Int(newSiteFile.map.uwbChannel)
+        _ = api.setChannel(channel: Int8(newSiteFile.map.uwbChannel ?? Constants.Values.defaultUwbChannel))
+        storage.channel = Int(newSiteFile.map.uwbChannel ?? Constants.Values.defaultUwbChannel)
         api.startPositioning()
     }
 
 
     
     func scan() async {
-        let discoveredTracelets = await tracelet.scan()
+        discoveredDevices = await tracelet.scan()
         
-        if discoveredTracelets.isEmpty {
+        if discoveredDevices.isEmpty {
             showAlertNoTraceletsFound()
             return
         }
         
-        if discoveredTracelets.count > 1 {
+        if discoveredDevices.count > 1 {
             toggleScanResults()
-        } else if let onlyDevice = discoveredTracelets.first {
+        } else if let onlyDevice = discoveredDevices.first {
             await connectToTracelet(onlyDevice)
         }
     }
@@ -214,7 +226,7 @@ struct FloorMapView: View {
     }
     
     private func connectToTracelet(_ tracelet: CBPeripheral) async {
-        let success = await self.tracelet.startTracelet(tracelet: tracelet, channel: sfm.siteFile.map.uwbChannel)
+        let success = await self.tracelet.startTracelet(tracelet: tracelet, channel: sfm.siteFile.map.uwbChannel ?? Constants.Values.defaultUwbChannel)
         if success {
             print("Successfully connected to and configured tracelet: \(tracelet)")
         } else {
@@ -270,7 +282,7 @@ struct NoMapLoadedView: View {
             }
             .foregroundColor(CustomColor.pinpoint_gray)
             
-            Text("No floor plan loaded")
+            Text("No Map Loaded")
                 .font(.headline)
                 .padding()
             Spacer()
@@ -278,7 +290,7 @@ struct NoMapLoadedView: View {
             Button {
                 siteListIsPresented.toggle()
             } label: {
-                Text("Load floor plan")
+                Text("Load Map")
             }
             .buttonStyle(.borderedProminent)
         }

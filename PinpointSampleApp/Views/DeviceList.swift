@@ -26,13 +26,14 @@ struct DeviceListView: View {
                         .padding()
                     
                 }
-                
+                let _ = print(discoveredDevices)
+                let _ = print("DEVICE LIST")
                 List{
                     ForEach(discoveredDevices, id: \.self) { device in
+
                         HStack{
                             Button(device.name ?? "name not found") {
                                 Task {
-                                    
                                     do {
                                         let connectResult = try await api.connectAndStartPositioning(device: device)
                                         if connectResult {
@@ -45,20 +46,17 @@ struct DeviceListView: View {
                                     }
 
                                     let uwbChannel = sfm.siteFile.map.uwbChannel
-                                    let channelResult = api.setChannel(channel: Int8(uwbChannel))
+                                    let channelResult = api.setChannel(channel: Int8(uwbChannel ?? Constants.Values.defaultUwbChannel))
 
                                     if channelResult {
-                                        logger.log(type: .info, "Channel set to \(uwbChannel) ...OK")
+                                        logger.log(type: .info, "Channel set to \(String(describing: uwbChannel)) ...OK")
                                     } else {
                                         logger.log(type: .error, "SetChannel Failed")
                                     }
-
-                                    
-                                    
-                                    
                                 }
                                 dismiss()
                             }
+                            .foregroundColor(.black)
                             Spacer()
                             
                             // Eye will fadeInOut when showme is ongoing

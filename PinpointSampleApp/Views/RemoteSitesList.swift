@@ -28,7 +28,7 @@ struct RemoteSitesList: View {
         ZStack{
             
             VStack{
-                Text("Available Maps")
+                Text("Download Maps")
                     .font(.headline)
                     .padding()
                 
@@ -60,11 +60,17 @@ struct RemoteSitesList: View {
                 } else {
                     List(sites, id: \.self) { site in
                         if let url = URL(string: site) {
-                            Button(url.lastPathComponent) { // Use lastPathComponent as the label
+                            Button {
                                 Task {
                                     isDownloadSuccessful = false
                                     isDownloadSuccessful = await sfm.downloadAndSave(site: site)
                                     dismiss()
+                                }
+                            } label: {
+                                HStack{
+                                    Image(systemName: "map")
+
+                                    Text(url.lastPathComponent)
                                 }
                             }
                         } else {

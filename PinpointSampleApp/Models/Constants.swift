@@ -42,4 +42,7 @@ struct Constants {
         static let webdavUser = "webdav-user"
         static let webdavPW = "webdav-pw"
     }
+    struct Values {
+        static let defaultUwbChannel = 5
+    }
 }

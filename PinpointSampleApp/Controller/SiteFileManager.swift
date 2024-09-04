@@ -76,8 +76,8 @@ public class SiteFileManager: ObservableObject {
         do {
             let items = try fileManager.contentsOfDirectory(atPath: destinationURL.path)
             for item in items {
-                let siteFile = try loadSiteFile(siteFileName: item)
-                print(siteFile.siteData.map.mapName)
+                // Create SiteData items, but do not set the site globally
+                let siteFile = try loadSiteFile(siteFileName: item, setSite: false)
                 list.append(siteFile)
                 
             }
@@ -125,17 +125,24 @@ public class SiteFileManager: ObservableObject {
     }
 
     @discardableResult
-     func loadSiteFile(siteFileName: String) throws -> SiteFile {
+    func loadSiteFile(siteFileName: String, setSite:Bool) throws -> SiteFile {
         var fileNameWithoutExtension = siteFileName
         if siteFileName.lowercased().hasSuffix(Constants.Extensions.zip) {
             fileNameWithoutExtension = String(siteFileName.dropLast(4))
         }
-
-        siteFile = loadJson(siteFileName: fileNameWithoutExtension)
+        let loadedSiteFile = loadJson(siteFileName: fileNameWithoutExtension)
+        // Only set the global sitefile if needed
+        if setSite{
+            siteFile = loadedSiteFile
+        }
         do {
             logger.log(type: .info, "\(Strings.Messages.sitefileLoaded) \(fileNameWithoutExtension)")
-            floorImage = try getFloorImage(siteFileName: fileNameWithoutExtension)
-            return SiteFile(siteData: siteFile, image: floorImage, localName: siteFileName)
+            let loadedFloorImage = try getFloorImage(siteFileName: fileNameWithoutExtension)
+            // Only set the global sitefile if needed
+            if setSite {
+                floorImage = loadedFloorImage
+            }
+            return SiteFile(siteData: loadedSiteFile, image: floorImage, localName: siteFileName)
         } catch {
             throw error
         }
@@ -146,13 +153,9 @@ public class SiteFileManager: ObservableObject {
 
     public func loadJson(siteFileName: String) -> SiteData {
         do {
-            print(siteFileName)
             var destinationURL = getDocumentsDirectory()
-            print(destinationURL)
             destinationURL.appendPathComponent(Constants.Paths.sitefiles)
-            print(destinationURL)
             destinationURL.appendPathComponent(siteFileName)
-            print(destinationURL)
 
             let data = try Data(contentsOf: destinationURL.appendingPathComponent(Constants.FileNames.sitedata))
             let decoder = JSONDecoder()

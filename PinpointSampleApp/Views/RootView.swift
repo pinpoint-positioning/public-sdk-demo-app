@@ -156,7 +156,7 @@ struct RootView: View {
                             guard let siteName = URL(string: dirPath)?.lastPathComponent else {
                                 return
                             }
-                            try sfm.loadSiteFile(siteFileName: siteName)
+                            try sfm.loadSiteFile(siteFileName: siteName, setSite: true)
                             isDownloadingSiteData = false
                             
                         } else {
