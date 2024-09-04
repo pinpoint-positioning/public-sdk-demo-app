@@ -53,8 +53,6 @@ struct SitesList: View {
         .sheet(isPresented: $showWebDavImporter, onDismiss: { loadSiteFiles() }) {
             RemoteSitesList()
         }
-        .navigationTitle("Import Site")
-        .navigationBarTitleDisplayMode(.inline)
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.zip], allowsMultipleSelection: false, onCompletion: handleFileImport)
         
     }
@@ -65,8 +63,11 @@ struct SitesList: View {
             importButton(imageName: "server.rack", text: "Cloud", action: { showWebDavImporter.toggle() })
             Spacer()
             Button(action: clearCache) {
-                Text("Delete all")
-                    .foregroundColor(.red)
+                HStack{
+                    Image(systemName: "xmark.bin.fill")
+                    Text("Delete all")
+                }
+                .foregroundColor(.red)
             }
             .disabled(list.isEmpty)
             .padding()
@@ -134,13 +135,6 @@ struct SitesList: View {
         
         var body: some View {
             VStack(alignment: .leading) {
-                // Header with config name
-                Text(site.siteData.map.configName)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                    .padding(.bottom, 2)
-                
                 // Image Section
                 Image(uiImage: site.image)
                     .resizable()
@@ -152,6 +146,17 @@ struct SitesList: View {
                 
                 // Information Section
                 VStack(alignment: .leading, spacing: 8) {
+                    
+                    // Config Name
+                    HStack {
+                        Image(systemName: "wrench.adjustable.fill")
+                            .foregroundColor(.green)
+                        Text(site.siteData.map.configName)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                    }
+                    
                     // Site ID and Level
                     HStack {
                         Image(systemName: "location.fill")
@@ -177,13 +182,13 @@ struct SitesList: View {
                             .foregroundColor(.primary)
                     }
                     
-                    
+
                 }
                 .padding(.bottom, 10)
                 
                 // Load Button
                 Button(action: {
-                    onSelect(site) 
+                    onSelect(site)
                 }) {
                     Text("Load Site")
                         .font(.headline)
